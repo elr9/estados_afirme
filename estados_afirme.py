@@ -17,8 +17,9 @@ def process_afirme_statement(uploaded_file):
     bank_data = bank_data[relevant_columns]
 
     # Convert 'Cargo' and 'Abono' to numeric values
-    bank_data['Cargo'] = pd.to_numeric(bank_data['Cargo'].str.replace('$', '').str.replace(',', ''), errors='coerce')
-    bank_data['Abono'] = pd.to_numeric(bank_data['Abono'].str.replace('$', '').str.replace(',', ''), errors='coerce')
+    # Ensure the columns are treated as strings before stripping unwanted characters
+    bank_data['Cargo'] = pd.to_numeric(bank_data['Cargo'].astype(str).str.replace('$', '').str.replace(',', ''), errors='coerce')
+    bank_data['Abono'] = pd.to_numeric(bank_data['Abono'].astype(str).str.replace('$', '').str.replace(',', ''), errors='coerce')
 
     # Initialize 'Comentarios' and 'Considerar' columns
     bank_data['Comentarios'] = ''
@@ -43,7 +44,7 @@ def process_hey_statement(uploaded_file):
     bank_data.columns = ['Fecha', 'Descripción', 'Referencia', 'Cargo', 'Abonos', 'Saldo', 'Clasificación']
 
     # Convert 'Abonos' to numeric values
-    bank_data['Abonos'] = pd.to_numeric(bank_data['Abonos'].str.replace('$', '').str.replace(',', ''), errors='coerce')
+    bank_data['Abonos'] = pd.to_numeric(bank_data['Abonos'].astype(str).str.replace('$', '').str.replace(',', ''), errors='coerce')
 
     # Initialize 'Comentarios' and 'Considerar' columns
     bank_data['Comentarios'] = ''
