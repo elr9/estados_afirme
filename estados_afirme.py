@@ -6,13 +6,19 @@ from io import BytesIO
 # Function to process the Afirme bank statement
 def process_afirme_statement(uploaded_file):
     try:
-        # Specify the engine explicitly
+        # Attempt to read as an Excel file
         bank_data = pd.read_excel(uploaded_file, header=7, engine='openpyxl')
+    except ValueError as e:
+        st.error(f"ValueError: {e}")
+        return None, 0
+    except BadZipFile as e:
+        st.error(f"BadZipFile: The file might not be a valid .xlsx file. {e}")
+        return None, 0
     except Exception as e:
-        st.error(f"Error reading the Afirme Excel file: {e}")
+        st.error(f"An unexpected error occurred: {e}")
         return None, 0
 
-    # Select relevant columns
+    # Continue with the rest of the processing if the file is valid
     relevant_columns = ['Concepto', 'Fecha', 'Referencia', 'Cargo', 'Abono', 'Saldo']
     bank_data = bank_data[relevant_columns]
 
