@@ -3,23 +3,17 @@ import pandas as pd
 import base64
 from io import BytesIO
 
-# Function to process the Afirme bank statement
+# Function to process the Afirme bank statement from CSV
 def process_afirme_statement(uploaded_file):
     try:
-        # Attempt to read as an Excel file
-        bank_data = pd.read_excel(uploaded_file, header=7, engine='openpyxl')
-    except ValueError as e:
-        st.error(f"ValueError: {e}")
-        return None, 0
-    except BadZipFile as e:
-        st.error(f"BadZipFile: The file might not be a valid .xlsx file. {e}")
-        return None, 0
+        # Read the CSV file
+        bank_data = pd.read_csv(uploaded_file)
     except Exception as e:
-        st.error(f"An unexpected error occurred: {e}")
+        st.error(f"Error reading the Afirme CSV file: {e}")
         return None, 0
 
-    # Continue with the rest of the processing if the file is valid
-    relevant_columns = ['Concepto', 'Fecha', 'Referencia', 'Cargo', 'Abono', 'Saldo']
+    # Select relevant columns
+    relevant_columns = ['Concepto', 'Fecha (DD/MM/AA)', 'Referencia', 'Cargo', 'Abono', 'Saldo']
     bank_data = bank_data[relevant_columns]
 
     # Convert 'Cargo' and 'Abono' to numeric values
@@ -75,15 +69,11 @@ def to_excel(df):
 # Streamlit application layout
 st.title('Bank Statement Processor')
 
-# File uploader for Afirme
+# File uploader for Afirme CSV
 st.subheader('Afirme Bank Statement')
-uploaded_file_afirme = st.file_uploader("Choose an Afirme file", type=['xlsx'], key='afirme')
+uploaded_file_afirme = st.file_uploader("Choose an Afirme CSV file", type=['csv'], key='afirme')
 
-# File uploader for Hey
-st.subheader('Hey Bank Statement')
-uploaded_file_hey = st.file_uploader("Choose a Hey file", type=['csv'], key='hey')
-
-# Process Afirme file
+# Process Afirme CSV file
 if uploaded_file_afirme is not None:
     cleaned_data_afirme, total_abono_afirme = process_afirme_statement(uploaded_file_afirme)
     if cleaned_data_afirme is not None:
@@ -95,6 +85,10 @@ if uploaded_file_afirme is not None:
             b64_afirme = base64.b64encode(processed_data_afirme).decode()
             href_afirme = f'<a href="data:application/octet-stream;base64,{b64_afirme}" download="afirme_data.xlsx">Download Afirme Excel File</a>'
             st.markdown(href_afirme, unsafe_allow_html=True)
+
+# File uploader for Hey
+st.subheader('Hey Bank Statement')
+uploaded_file_hey = st.file_uploader("Choose a Hey file", type=['csv'], key='hey')
 
 # Process Hey file
 if uploaded_file_hey is not None:
