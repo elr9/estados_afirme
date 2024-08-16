@@ -5,8 +5,12 @@ from io import BytesIO
 
 # Function to process the Afirme bank statement
 def process_afirme_statement(uploaded_file):
-    # Read the Excel file
-    bank_data = pd.read_excel(uploaded_file, header=7)
+    try:
+        # Specify the engine explicitly
+        bank_data = pd.read_excel(uploaded_file, header=7, engine='openpyxl')
+    except Exception as e:
+        st.error(f"Error reading the Afirme Excel file: {e}")
+        return None, 0
 
     # Select relevant columns
     relevant_columns = ['Concepto', 'Fecha', 'Referencia', 'Cargo', 'Abono', 'Saldo']
@@ -18,7 +22,7 @@ def process_afirme_statement(uploaded_file):
 
     # Initialize 'Comentarios' and 'Considerar' columns
     bank_data['Comentarios'] = ''
-    bank_data['Considerar'] = 'si' # Default to 'si'
+    bank_data['Considerar'] = 'si'  # Default to 'si'
 
     # Apply rules for 'Comentarios' and 'Considerar'
     bank_data.loc[bank_data['Concepto'] == 'DISPERSION DE FONDOS', ['Comentarios', 'Considerar']] = ['Nómina', 'si']
@@ -43,7 +47,7 @@ def process_hey_statement(uploaded_file):
 
     # Initialize 'Comentarios' and 'Considerar' columns
     bank_data['Comentarios'] = ''
-    bank_data['Considerar'] = 'si' # Default to 'si'
+    bank_data['Considerar'] = 'si'  # Default to 'si'
 
     # Apply rules for 'Comentarios' and 'Considerar'
     bank_data.loc[bank_data['Descripción'].str.contains('TARJETA DE CREDITO B|propias|Ahorro', case=False, na=False), ['Comentarios', 'Considerar']] = ['Traspaso entre cuentas propias', 'no']
@@ -76,14 +80,15 @@ uploaded_file_hey = st.file_uploader("Choose a Hey file", type=['csv'], key='hey
 # Process Afirme file
 if uploaded_file_afirme is not None:
     cleaned_data_afirme, total_abono_afirme = process_afirme_statement(uploaded_file_afirme)
-    st.write(f"Total Income from Afirme: ${total_abono_afirme:,.2f}")
+    if cleaned_data_afirme is not None:
+        st.write(f"Total Income from Afirme: ${total_abono_afirme:,.2f}")
 
-    # Download link for Afirme data
-    if st.button('Download Afirme Data as Excel', key='download_afirme'):
-        processed_data_afirme = to_excel(cleaned_data_afirme)
-        b64_afirme = base64.b64encode(processed_data_afirme).decode()
-        href_afirme = f'<a href="data:application/octet-stream;base64,{b64_afirme}" download="afirme_data.xlsx">Download Afirme Excel File</a>'
-        st.markdown(href_afirme, unsafe_allow_html=True)
+        # Download link for Afirme data
+        if st.button('Download Afirme Data as Excel', key='download_afirme'):
+            processed_data_afirme = to_excel(cleaned_data_afirme)
+            b64_afirme = base64.b64encode(processed_data_afirme).decode()
+            href_afirme = f'<a href="data:application/octet-stream;base64,{b64_afirme}" download="afirme_data.xlsx">Download Afirme Excel File</a>'
+            st.markdown(href_afirme, unsafe_allow_html=True)
 
 # Process Hey file
 if uploaded_file_hey is not None:
